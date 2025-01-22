@@ -454,32 +454,19 @@ def select_api_key(keys, llm_model):
 
 @lru_cache(maxsize=128)
 def read_single_conf_with_lru_cache(arg):
-    from colorful import print亮红, print亮绿
-    try:
-        r = getattr(importlib.import_module('config_private'), arg)
-    except:
-        r = getattr(importlib.import_module('config'), arg)
-    # 在读取API_KEY时，检查一下是不是忘了改config
-    if arg == 'API_KEY':
-        if is_any_api_key(r):
-            print亮绿(f"[API_KEY] 您的 API_KEY 是: {r[:15]}*** API_KEY 导入成功")
-        else:
-            print亮红( "[API_KEY] 正确的 API_KEY 是'sk'开头的51位密钥（OpenAI），或者 'fk'开头的41位密钥，请在config文件中修改API密钥之后再运行。")
-    if arg == 'proxies':
-        if r is None:
-            print亮红('[PROXY] 网络代理状态：未配置。无代理状态下很可能无法访问OpenAI家族的模型。建议：检查USE_PROXY选项是否修改。')
-        else:
-            print亮绿('[PROXY] 网络代理状态：已配置。配置信息如下：', r)
-            assert isinstance(r, dict), 'proxies格式错误，请注意proxies选项的格式，不要遗漏括号。'
-    return r
-
+    from config import load_config
+    config = load_config()
+    return config
 
 def get_conf(*args):
     # 建议您复制一个config_private.py放自己的秘密, 如API和代理网址, 避免不小心传github被别人看到
     res = []
     for arg in args:
-        r = read_single_conf_with_lru_cache(arg)
-        res.append(r)
+        config = read_single_conf_with_lru_cache(arg)
+        if arg == 'CODE_HIGHLIGHT':
+            res.append(True)
+        else:
+            res.append(None)
     return res
 
 

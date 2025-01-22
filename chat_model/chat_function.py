@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QThread, QEvent, QSize, QTimer, pyqtSlo
 from PyQt5.QtGui import QKeyEvent
 import datetime
 import os
-from .openai_request import OpenAI_request
+from .flowise_request import Flowise_request
 from .chat_windows import MessageWidget, ChatWidget
 
 # 聊天的具体实现
@@ -23,10 +23,10 @@ class ChatDialogBody(QDialog):
 
         # 创建一个日志文件用于保存聊天记录
         self.create_chat_log_file()
-        # 调用gpt接口
-        self.open_ai = OpenAI_request(config)
+        # 调用flowise接口
+        self.flowise = Flowise_request(config)
         # api的槽函数
-        self.open_ai.response_received.connect(self.handle_response)
+        self.flowise.response_received.connect(self.handle_response)
         
         # 创建新线程发出http请求
         # 原来的线程则负责持续更新UI，实现一个超时倒计时，并等待新线程的任务完成
@@ -34,9 +34,9 @@ class ChatDialogBody(QDialog):
         self.request_thread = QThread()
         self.request_thread.start()
 
-        # 将 self.open_ai 移动到线程并启动
-        self.open_ai.moveToThread(self.request_thread)
-        self.open_ai.start()
+        # 将 self.flowise 移动到线程并启动
+        self.flowise.moveToThread(self.request_thread)
+        self.flowise.start()
 
         #请求中的组件
         self.system_message_index = -1
@@ -179,7 +179,7 @@ class ChatDialogBody(QDialog):
             self.context_history[0].append(text)
             if not sys_prompt:
                 sys_prompt = "You are an AI language model."
-            self.open_ai.prompt_queue.put((text, self.context_history, sys_prompt, False))
+            self.flowise.prompt_queue.put((text, self.context_history, sys_prompt, False))
             self.message_input.clear()
 
     # 处理gpt的返回数据
